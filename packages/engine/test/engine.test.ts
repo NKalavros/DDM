@@ -410,6 +410,144 @@ describe("engine", () => {
     expect(result.state.players.p2.crests.DEFENSE).toBe(0);
   });
 
+  it("allows only one attack per summon each turn", () => {
+    let state = createMatchState(
+      {
+        matchId: "m-attack-once",
+        roomCode: "ABC123",
+        players: {
+          p1: { name: "P1", deck: deck("d1", "walker-die") },
+          p2: { name: "P2", deck: deck("d2", "walker-die") }
+        }
+      },
+      catalog
+    );
+
+    state.phase = "action";
+    state.players.p1.crests.ATTACK = 2;
+    state.summons["a"] = {
+      id: "a",
+      ownerId: "p1",
+      definitionId: "walker",
+      kind: "monster",
+      tile: { x: 6, y: 10 },
+      health: 20,
+      attack: 10,
+      defense: 5,
+      movement: 1,
+      attackRange: 1,
+      abilities: [],
+      hasMoved: false,
+      hasAttacked: false,
+      guarding: false
+    };
+    state.summons["b"] = {
+      id: "b",
+      ownerId: "p2",
+      definitionId: "walker",
+      kind: "monster",
+      tile: { x: 6, y: 9 },
+      health: 20,
+      attack: 10,
+      defense: 5,
+      movement: 1,
+      attackRange: 1,
+      abilities: [],
+      hasMoved: false,
+      hasAttacked: false,
+      guarding: false
+    };
+    state.summons["c"] = {
+      id: "c",
+      ownerId: "p2",
+      definitionId: "walker",
+      kind: "monster",
+      tile: { x: 7, y: 10 },
+      health: 20,
+      attack: 10,
+      defense: 5,
+      movement: 1,
+      attackRange: 1,
+      abilities: [],
+      hasMoved: false,
+      hasAttacked: false,
+      guarding: false
+    };
+    state.players.p1.summonIds.push("a");
+    state.players.p2.summonIds.push("b", "c");
+    state.board.find((tile) => tile.coord.x === 6 && tile.coord.y === 10)!.occupantId = "a";
+    state.board.find((tile) => tile.coord.x === 6 && tile.coord.y === 10)!.state = "path";
+    state.board.find((tile) => tile.coord.x === 6 && tile.coord.y === 9)!.occupantId = "b";
+    state.board.find((tile) => tile.coord.x === 6 && tile.coord.y === 9)!.state = "path";
+    state.board.find((tile) => tile.coord.x === 7 && tile.coord.y === 10)!.occupantId = "c";
+    state.board.find((tile) => tile.coord.x === 7 && tile.coord.y === 10)!.state = "path";
+
+    let result = reduceMatchState(state, "p1", { type: "start_attack", attackerId: "a", targetId: "b" }, catalog);
+    expect(result.ok).toBe(true);
+    state = result.state;
+    result = reduceMatchState(state, "p2", { type: "reply_defense", mode: "take_hit" }, catalog);
+    expect(result.ok).toBe(true);
+    state = result.state;
+
+    result = reduceMatchState(state, "p1", { type: "start_attack", attackerId: "a", targetId: "c" }, catalog);
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+    expect(result.reason).toContain("already attacked");
+  });
+
+  it("always deals exactly one heart of damage when attacking a Monster Lord", () => {
+    let state = createMatchState(
+      {
+        matchId: "m-lord-damage",
+        roomCode: "ABC123",
+        players: {
+          p1: { name: "P1", deck: deck("d1", "sky-drake-die") },
+          p2: { name: "P2", deck: deck("d2", "walker-die") }
+        }
+      },
+      catalog
+    );
+
+    state.phase = "action";
+    state.players.p1.crests.ATTACK = 1;
+    state.players.p2.crests.DEFENSE = 1;
+    state.summons["a"] = {
+      id: "a",
+      ownerId: "p1",
+      definitionId: "sky-drake",
+      kind: "monster",
+      tile: { x: 6, y: 1 },
+      health: 20,
+      attack: 20,
+      defense: 10,
+      movement: 2,
+      attackRange: 1,
+      abilities: [{ kind: "FLY" }],
+      hasMoved: false,
+      hasAttacked: false,
+      guarding: false
+    };
+    state.players.p1.summonIds.push("a");
+    state.board.find((tile) => tile.coord.x === 6 && tile.coord.y === 1)!.occupantId = "a";
+    state.board.find((tile) => tile.coord.x === 6 && tile.coord.y === 1)!.state = "path";
+
+    let result = reduceMatchState(state, "p1", { type: "start_attack", attackerId: "a", targetId: "p2-lord" }, catalog);
+    expect(result.ok).toBe(true);
+    state = result.state;
+    result = reduceMatchState(state, "p2", { type: "reply_defense", mode: "guard" }, catalog);
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.state.summons["p2-lord"]?.health).toBe(20);
+    expect(result.state.players.p2.hearts).toBe(2);
+    expect(result.state.players.p1.crests.ATTACK).toBe(0);
+    expect(result.state.players.p2.crests.DEFENSE).toBe(0);
+  });
+
   it("lets tunneling summons move through blocked intermediate tiles", () => {
     const state = createMatchState(
       {

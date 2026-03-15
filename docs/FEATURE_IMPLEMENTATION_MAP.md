@@ -19,7 +19,7 @@ This document maps every item in `FEATURES.md` to the current codebase so a futu
 | Monster | Implemented | `packages/protocol/src/index.ts`, `packages/engine/src/index.ts`, `packages/content/generated/catalog.generated.ts` | Monster definitions are normalized into protocol-level `MonsterDefinition` objects and instantiated as `SummonState`. |
 | Monster Dice | Implemented | `packages/protocol/src/index.ts`, `packages/content/src/normalize.ts`, `apps/web/src/App.tsx` | Dice are explicit six-face objects and are selectable in the deckbuilder and roll UI. |
 | Dice attributes | Implemented | `packages/protocol/src/index.ts`, `packages/content/src/normalize.ts` | `DieFace` supports summon faces and crest faces with explicit crest type and amount. |
-| Health | Implemented | `packages/protocol/src/index.ts`, `packages/engine/src/index.ts`, `apps/web/src/App.tsx` | Monsters and Monster Lords track health; player hearts are derived from Monster Lord health. |
+| Health | Implemented | `packages/protocol/src/index.ts`, `packages/engine/src/index.ts`, `apps/web/src/App.tsx` | Monsters and Monster Lords track health; player hearts are derived from Monster Lord health, and attacks against a Monster Lord always remove exactly 10 HP. |
 | Attack | Implemented | `packages/protocol/src/index.ts`, `packages/engine/src/index.ts`, `apps/web/src/App.tsx` | Attack stats are part of both definitions and runtime summon state. |
 | Defense | Implemented | `packages/protocol/src/index.ts`, `packages/engine/src/index.ts`, `apps/web/src/App.tsx` | Defense stat reduces damage only when the defender chooses `Guard`. |
 | Dice Rolling | Implemented | `packages/engine/src/index.ts`, `apps/web/src/App.tsx` | Server-authoritative `submit_roll` resolves rolled faces and crest gains. The current rules require exactly 3 different unused dice per roll. |
@@ -30,7 +30,7 @@ This document maps every item in `FEATURES.md` to the current codebase so a futu
 | Deck | Implemented | `packages/protocol/src/index.ts`, `packages/content/src/index.ts`, `apps/web/src/App.tsx`, `apps/server/src/app.ts` | Decks are 15-die lists, stored locally on the client and validated on the server. |
 | Crest prioritization | Implemented as deck-summary and roll-selection support | `apps/web/src/App.tsx` | Current implementation includes deck crest summaries plus roll-priority buttons that auto-select the strongest 3 dice for a target crest type. |
 | Moving | Implemented | `packages/engine/src/index.ts`, `apps/web/src/board-helpers.ts`, `apps/web/src/App.tsx` | Movement costs crests per tile, validated path submission, and a summon can move multiple times in the turn while crests remain. |
-| Attacking | Implemented | `packages/engine/src/index.ts`, `apps/web/src/App.tsx` | Attacks open a reply window instead of resolving immediately. |
+| Attacking | Implemented | `packages/engine/src/index.ts`, `apps/web/src/App.tsx` | Attacks open a reply window instead of resolving immediately, and each summon can attack only once per turn. |
 | Defending | Implemented | `packages/engine/src/index.ts`, `apps/web/src/App.tsx` | Defender chooses `guard` or `take_hit`. |
 | Abilities | Partially implemented | `packages/protocol/src/index.ts`, `packages/engine/src/index.ts`, `packages/content/src/normalize.ts` | Ability framework exists; only `FLY` and `TUNNEL` are playable in v1. |
 | Flying | Implemented | `packages/engine/src/index.ts`, `apps/web/src/board-helpers.ts` | `FLY` currently allows traversal over blocked/intermediate occupied tiles and empty terrain, and costs 2 movement crests per tile. |
@@ -49,6 +49,7 @@ This document maps every item in `FEATURES.md` to the current codebase so a futu
   - multiple moves in one turn
   - movement costs
   - flying movement costing 2 per tile
+  - one-attack-per-turn enforcement per summon
   - guard/defense resolution
   - `TUNNEL` traversal through blocked intermediate tiles
 - `apps/server/test/server.test.ts`

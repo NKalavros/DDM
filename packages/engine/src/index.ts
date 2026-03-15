@@ -205,7 +205,8 @@ function resolveDamage(state: MatchState, summonId: string, damage: number, atta
     return;
   }
 
-  target.health -= damage;
+  const resolvedDamage = target.kind === "monster_lord" ? 10 : damage;
+  target.health -= resolvedDamage;
   if (target.kind === "monster_lord") {
     updateLordHearts(state, target.ownerId);
   }
@@ -653,16 +654,19 @@ export function reduceMatchState(
         if (!spendCrest(state, playerId, "DEFENSE", 1)) {
           return { ok: false, reason: "Not enough defense crests to guard.", state };
         }
-        damage = Math.max(0, damage - target.defense);
+        if (target.kind !== "monster_lord") {
+          damage = Math.max(0, damage - target.defense);
+        }
       }
 
+      const resolvedDamage = target.kind === "monster_lord" ? 10 : damage;
       attacker.hasAttacked = true;
       resolveDamage(state, target.id, damage, attacker.ownerId);
       state.actionWindow = null;
       if (!state.winnerId) {
         state.phase = "action";
       }
-      addLog(state, "attack", `${attacker.ownerId} attacked ${target.ownerId} for ${damage}.`);
+      addLog(state, "attack", `${attacker.ownerId} attacked ${target.ownerId} for ${resolvedDamage}.`);
       return { ok: true, state };
     }
     case "end_turn": {

@@ -18,7 +18,7 @@ The current scope is the v1 feature set from `FEATURES.md`: monsters, dice, roll
 - Convert matching summon rolls into a dimension action
 - Change net shape, rotate, flip, inspect die faces, and place the dimension anchor on the board
 - Move monsters multiple times per turn by spending movement crests per square
-- Attack enemy monsters and Monster Lords by spending attack crests
+- Attack enemy monsters and Monster Lords once per summon each turn by spending attack crests
 - Guard during the defense window by spending defense crests
 - Use roll-priority shortcuts for `MOVEMENT`, `ATTACK`, `DEFENSE`, `MAGIC`, and `TRAP`
 - Play monsters with `FLY` and `TUNNEL`
@@ -71,7 +71,7 @@ node apps/server/dist/index.js
 6. During dimensioning, inspect the die faces if needed, then click a board tile to set the anchor. You can adjust shape/rotation/flip before confirming, and arrow keys also control the net preview.
 7. During the action phase, select one of your summons and:
    - `Move` to a highlighted destination. You can move the same summon more than once in the turn if you still have movement crests.
-   - `Attack` an enemy target in range
+   - `Attack` an enemy target in range. Each summon can only attack once per turn.
    - `End Turn`
 8. If your summon is attacked and you are the defender, choose:
    - `Guard` to spend one defense crest and reduce damage by the defender's defense value
@@ -81,6 +81,10 @@ Movement costs in the current build:
 
 - normal summons: `1` movement crest per tile
 - `FLY` summons: `2` movement crests per tile
+
+Monster Lord rule in the current build:
+
+- any successful attack against a Monster Lord removes exactly `10` HP, which is `1` heart, regardless of the attacker's printed damage
 
 ## Deck Builder
 
@@ -121,6 +125,7 @@ Current automated coverage includes:
 - flying movement costing 2 crests per tile
 - movement and dimension legality previews on the client
 - attack/defense reply resolution
+- one-attack-per-summon turn limit
 - `TUNNEL` movement through blocked intermediate tiles
 - lobby creation/joining and match startup
 - explicit resync responses
