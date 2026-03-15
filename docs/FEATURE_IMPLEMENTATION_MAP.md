@@ -21,7 +21,7 @@ This document maps every item in `FEATURES.md` to the current codebase so a futu
 | Dice attributes | Implemented | `packages/protocol/src/index.ts`, `packages/content/src/normalize.ts` | `DieFace` supports summon faces and crest faces with explicit crest type and amount. |
 | Health | Implemented | `packages/protocol/src/index.ts`, `packages/engine/src/index.ts`, `apps/web/src/App.tsx` | Monsters and Monster Lords track health; player hearts are derived from Monster Lord health, and attacks against a Monster Lord always remove exactly 10 HP. |
 | Attack | Implemented | `packages/protocol/src/index.ts`, `packages/engine/src/index.ts`, `apps/web/src/App.tsx` | Attack stats are part of both definitions and runtime summon state. |
-| Defense | Implemented | `packages/protocol/src/index.ts`, `packages/engine/src/index.ts`, `apps/web/src/App.tsx` | Defense stat reduces damage only when the defender chooses `Guard`. |
+| Defense | Implemented | `packages/protocol/src/index.ts`, `packages/engine/src/index.ts`, `apps/web/src/App.tsx` | Defense stat applies only when the defender chooses `Guard`; if defense exceeds the attacker's attack, the difference is reflected back to the attacker. |
 | Dice Rolling | Implemented | `packages/engine/src/index.ts`, `apps/web/src/App.tsx` | Server-authoritative `submit_roll` resolves rolled faces and crest gains. The current rules require exactly 3 different unused dice per roll. |
 | Dimensioning | Implemented | `packages/protocol/src/index.ts`, `packages/engine/src/index.ts`, `apps/web/src/App.tsx`, `apps/web/src/Board3D.tsx` | Matching summon rolls open a dimension step with a live net preview, die-face inspection, click-to-anchor placement, and keyboard net controls. |
 | Change shape | Implemented | `packages/protocol/src/index.ts`, `packages/engine/src/index.ts`, `apps/web/src/App.tsx` | Exposed as `set_dimension_net`; current UI supports all Godot net types. |
@@ -51,6 +51,7 @@ This document maps every item in `FEATURES.md` to the current codebase so a futu
   - flying movement costing 2 per tile
   - one-attack-per-turn enforcement per summon
   - guard/defense resolution
+  - reflected damage when guarded defense exceeds attack
   - `TUNNEL` traversal through blocked intermediate tiles
 - `apps/server/test/server.test.ts`
   - room creation and joining

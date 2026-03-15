@@ -199,13 +199,19 @@ function removeSummon(state: MatchState, summonId: string): void {
   delete state.summons[summonId];
 }
 
-function resolveDamage(state: MatchState, summonId: string, damage: number, attackerOwnerId: PlayerId): void {
+function resolveDamage(
+  state: MatchState,
+  summonId: string,
+  damage: number,
+  attackerOwnerId: PlayerId,
+  options?: { fixedLordHeartDamage?: boolean }
+): void {
   const target = state.summons[summonId];
   if (!target) {
     return;
   }
 
-  const resolvedDamage = target.kind === "monster_lord" ? 10 : damage;
+  const resolvedDamage = target.kind === "monster_lord" && options?.fixedLordHeartDamage !== false ? 10 : damage;
   target.health -= resolvedDamage;
   if (target.kind === "monster_lord") {
     updateLordHearts(state, target.ownerId);
@@ -650,23 +656,38 @@ export function reduceMatchState(
       }
 
       let damage = attacker.attack;
+      let reflectedDamage = 0;
       if (command.mode === "guard") {
         if (!spendCrest(state, playerId, "DEFENSE", 1)) {
           return { ok: false, reason: "Not enough defense crests to guard.", state };
         }
         if (target.kind !== "monster_lord") {
-          damage = Math.max(0, damage - target.defense);
+          if (target.defense > attacker.attack) {
+            damage = 0;
+            reflectedDamage = target.defense - attacker.attack;
+          } else {
+            damage = Math.max(0, damage - target.defense);
+          }
         }
       }
 
       const resolvedDamage = target.kind === "monster_lord" ? 10 : damage;
       attacker.hasAttacked = true;
       resolveDamage(state, target.id, damage, attacker.ownerId);
+      if (reflectedDamage > 0) {
+        resolveDamage(state, attacker.id, reflectedDamage, target.ownerId, { fixedLordHeartDamage: false });
+      }
       state.actionWindow = null;
       if (!state.winnerId) {
         state.phase = "action";
       }
-      addLog(state, "attack", `${attacker.ownerId} attacked ${target.ownerId} for ${resolvedDamage}.`);
+      addLog(
+        state,
+        "attack",
+        `${attacker.ownerId} attacked ${target.ownerId} for ${resolvedDamage}${
+          reflectedDamage > 0 ? ` and took ${reflectedDamage} reflected damage` : ""
+        }.`
+      );
       return { ok: true, state };
     }
     case "end_turn": {

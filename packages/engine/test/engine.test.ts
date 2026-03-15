@@ -410,6 +410,76 @@ describe("engine", () => {
     expect(result.state.players.p2.crests.DEFENSE).toBe(0);
   });
 
+  it("reflects the defense surplus back to the attacker when guard exceeds attack", () => {
+    let state = createMatchState(
+      {
+        matchId: "m-reflect",
+        roomCode: "ABC123",
+        players: {
+          p1: { name: "P1", deck: deck("d1", "walker-die") },
+          p2: { name: "P2", deck: deck("d2", "walker-die") }
+        }
+      },
+      catalog
+    );
+
+    state.phase = "action";
+    state.players.p1.crests.ATTACK = 1;
+    state.players.p2.crests.DEFENSE = 1;
+    state.summons["a"] = {
+      id: "a",
+      ownerId: "p1",
+      definitionId: "walker",
+      kind: "monster",
+      tile: { x: 6, y: 10 },
+      health: 20,
+      attack: 10,
+      defense: 5,
+      movement: 1,
+      attackRange: 1,
+      abilities: [],
+      hasMoved: false,
+      hasAttacked: false,
+      guarding: false
+    };
+    state.summons["b"] = {
+      id: "b",
+      ownerId: "p2",
+      definitionId: "walker",
+      kind: "monster",
+      tile: { x: 6, y: 9 },
+      health: 20,
+      attack: 10,
+      defense: 15,
+      movement: 1,
+      attackRange: 1,
+      abilities: [],
+      hasMoved: false,
+      hasAttacked: false,
+      guarding: false
+    };
+    state.players.p1.summonIds.push("a");
+    state.players.p2.summonIds.push("b");
+    state.board.find((tile) => tile.coord.x === 6 && tile.coord.y === 10)!.occupantId = "a";
+    state.board.find((tile) => tile.coord.x === 6 && tile.coord.y === 10)!.state = "path";
+    state.board.find((tile) => tile.coord.x === 6 && tile.coord.y === 9)!.occupantId = "b";
+    state.board.find((tile) => tile.coord.x === 6 && tile.coord.y === 9)!.state = "path";
+
+    let result = reduceMatchState(state, "p1", { type: "start_attack", attackerId: "a", targetId: "b" }, catalog);
+    expect(result.ok).toBe(true);
+    state = result.state;
+    result = reduceMatchState(state, "p2", { type: "reply_defense", mode: "guard" }, catalog);
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.state.summons.a?.health).toBe(15);
+    expect(result.state.summons.b?.health).toBe(20);
+    expect(result.state.players.p1.crests.ATTACK).toBe(0);
+    expect(result.state.players.p2.crests.DEFENSE).toBe(0);
+  });
+
   it("allows only one attack per summon each turn", () => {
     let state = createMatchState(
       {

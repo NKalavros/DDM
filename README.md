@@ -77,6 +77,10 @@ node apps/server/dist/index.js
    - `Guard` to spend one defense crest and reduce damage by the defender's defense value
    - `Take Hit` to take full damage
 
+Defense reflection rule in the current build:
+
+- if a guarded monster's defense is higher than the attacker's attack, the defender takes `0` damage and the difference is dealt back to the attacker
+
 Movement costs in the current build:
 
 - normal summons: `1` movement crest per tile
