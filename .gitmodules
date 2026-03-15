@@ -1,0 +1,6 @@
+[submodule "DDMre"]
+	path = DDMre
+	url = https://github.com/francocurotto/DDMre
+[submodule "DungeonDiceMonsters"]
+	path = DungeonDiceMonsters
+	url = https://github.com/bfurman777/DungeonDiceMonsters/

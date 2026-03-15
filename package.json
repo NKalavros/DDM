@@ -1,0 +1,18 @@
+{
+  "name": "ddm-web",
+  "private": true,
+  "packageManager": "pnpm@10.6.2",
+  "scripts": {
+    "build": "corepack pnpm generate:content && corepack pnpm -r build",
+    "dev": "corepack pnpm generate:content && corepack pnpm --filter @ddm/protocol build && corepack pnpm --filter @ddm/content build && corepack pnpm --filter @ddm/engine build && corepack pnpm --parallel --filter @ddm/server --filter @ddm/web dev",
+    "generate:content": "corepack pnpm --filter @ddm/content generate",
+    "test": "corepack pnpm generate:content && corepack pnpm -r test",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.1",
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}
